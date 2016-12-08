@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+* @structure Brand
+*
+* @author Leano Martinet <info@asterion-cms.com>
+* @package Asterion
+* @version 3.0.1
+-->
+<object>
+    <name>Brand</name>
+    <info>
+        <sql>
+            <primary>idBrand</primary>
+            <order>true</order>
+        </sql>
+        <form>
+            <title>brands</title>
+            <orderBy>ord</orderBy>
+            <label>#title</label>
+            <templateItemAdmin>
+                <p class="accent"><strong>#title</strong></p>
+                <p class="image">#image</p>
+            </templateItemAdmin>
+        </form>
+    </info>
+    <attributes>
+        <attribute>
+            <name>idBrand</name>
+            <type>id-autoincrement</type>
+        </attribute>
+        <attribute>
+            <name>title</name>
+            <lang>true</lang>
+            <label>title</label>
+            <required>notEmpty</required>
+            <type>text</type>
+        </attribute>
+        <attribute>
+            <name>image</name>
+            <label>image</label>
+            <type>file</type>
+            <mode>image</mode>
+        </attribute>
+    </attributes>
+</object>
