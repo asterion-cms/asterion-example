@@ -28,14 +28,14 @@ abstract class Controller{
         $this->files = isset($FILES) ? $FILES : array();
         $this->login = User_Login::getInstance();
     }
-    
+
     /**
     * Function to get the title for a page.
     * By default it uses the title defined in the Parameters.
     */
     public function getTitle() {
         return (isset($this->titlePage)) ? $this->titlePage.' - '.Params::param('metainfo-titlePage') : Params::param('metainfo-titlePage');
-    }   
+    }
 
     /**
     * Function to get the extra header tags for a page.
@@ -66,7 +66,14 @@ abstract class Controller{
     * By default it uses the LOGO defined in the configuration file.
     */
     public function getMetaImage() {
-        return (isset($this->metaImage) && $this->metaImage!='') ? $this->metaImage : LOGO;
+        $image = (isset($this->metaImage) && $this->metaImage!='') ? $this->metaImage : LOGO;
+        $imageFile = str_replace(BASE_URL, BASE_FILE, $image);
+        if (is_file($imageFile)) {
+            $imageSize = getimagesize($imageFile);
+            return '<meta property="og:image" content="'.$image.'" />
+                    <meta property="og:image:width" content="'.$imageSize[0].'" />
+                    <meta property="og:image:height" content="'.$imageSize[1].'" />';
+        }
     }
 
     /**
@@ -190,6 +197,7 @@ abstract class Controller{
                 }
             break;
             case 'delete':
+            case 'deleteAjax':
                 /**
                 * This is the action that deletes a record.
                 */
@@ -199,7 +207,12 @@ abstract class Controller{
                     $object = $type->readObject($this->id);
                     $object->delete();
                 }
-                header('Location: '.url($this->type.'/listAdmin', true));
+                if ($this->action == 'deleteAjax') {
+                    $this->mode == 'ajax';
+                    return '{}';
+                } else {
+                    header('Location: '.url($this->type.'/listAdmin', true));
+                }
                 exit();
             break;
             case 'sortSave':
@@ -293,7 +306,7 @@ abstract class Controller{
                     $where = substr($where, 0, -4);
                     $concat = 'CONCAT('.substr($concat, 0, -5).')';
                     if ($where!='') {
-                        $query = 'SELECT '.(string)$this->object->info->info->sql->primary.' as idItem, 
+                        $query = 'SELECT '.(string)$this->object->info->info->sql->primary.' as idItem,
                                 '.$concat.' as infoItem
                                 FROM '.Db::prefixTable($this->type).'
                                 WHERE '.$where.'
@@ -307,7 +320,7 @@ abstract class Controller{
                             $resultsIns['label'] = $result['infoItem'];
                             array_push($results, $resultsIns);
                         }
-                        return json_encode($results);                        
+                        return json_encode($results);
                     }
                 }
             break;
@@ -325,7 +338,7 @@ abstract class Controller{
                         header('Location: '.url($this->type.'/search/'.$searchString, true));
                     } else {
                         header('Location: '.url($this->type.'/listAdmin', true));
-                    }    
+                    }
                 }
             break;
             case 'export-json':
@@ -352,6 +365,7 @@ abstract class Controller{
         }
         $search = $this->object->infoSearch();
         $searchQuery = $this->object->infoSearchQuery();
+        $searchQueryCount = $this->object->infoSearchQueryCount();
         $searchValue = urldecode($this->id);
         $sortableListClass = ($this->object->hasOrd()) ? 'sortableList' : '';
         $ordObject = explode('_', Session::get('ord_'.$this->type));
@@ -365,6 +379,7 @@ abstract class Controller{
         $options['results'] = (int)$this->object->info->info->form->pager;
         $options['where'] = ($search!='' && $searchValue!='') ? str_replace('#SEARCH', $searchValue, $search) : '';
         $options['query'] = ($searchQuery!='' && $searchValue!='') ? str_replace('#SEARCH', $searchValue, $searchQuery) : '';
+        $options['queryCount'] = ($searchQueryCount!='' && $searchValue!='') ? str_replace('#SEARCH', $searchValue, $searchQueryCount) : '';
         $list = new ListObjects($this->type, $options);
         $multipleChoice = (count((array)$this->object->info->info->form->multipleActions->action) > 0);
         $controlsTop = $this->multipleActionsControl().$this->orderControl();
@@ -412,9 +427,10 @@ abstract class Controller{
         if ($orderAttribute!='') {
             $orderAttribute = explode(',', $orderAttribute);
             $orderAttribute = explode(' ', $orderAttribute[0]);
+            $orderType = (isset($orderAttribute[1]) && $orderAttribute[1]=='DESC') ? 'DESC' : 'ASC';
             $orderAttribute = $orderAttribute[0];
             $orderInfo = $this->object->attributeInfo($orderAttribute);
-            return (is_object($orderInfo) && (string)$orderInfo->lang == "true") ? $orderAttribute.'_'.Lang::active() : $orderAttribute;
+            return (is_object($orderInfo) && (string)$orderInfo->lang == "true") ? $orderAttribute.'_'.Lang::active().' '.$orderType : $orderAttribute.' '.$orderType;
         }
     }
 
@@ -451,7 +467,7 @@ abstract class Controller{
                 $linkMultiple = url($this->type.'/multiple-'.$multipleAction, true);
                 $multipleActionsOptions .= '<div class="multipleAction multipleOption" rel="'.$linkMultiple.'">
                                                 '.__($multipleAction.'Selected').'
-                                            </div>';    
+                                            </div>';
             }
             return '<div class="multipleActions">
                         <div class="multipleAction multipleActionCheckAll">
@@ -542,7 +558,7 @@ abstract class Controller{
                                     array('submit'=>array('save'=>__('save'),
                                             'saveCheck'=>__('saveCheck')))));
     }
-    
+
     /**
     * Modify an element and return the proper information to render.
     */
@@ -586,6 +602,7 @@ abstract class Controller{
         $action = ($action!='') ? $action : $this->action;
         switch ($action) {
             case 'listAdmin':
+            case 'search':
                 if (Permission::canInsert($this->type)) {
                     $items = '<div class="menuSimpleItem menuSimpleItemInsert">
                                 <a href="'.url($this->type.'/insertView', true).'">'.__('insertNew').'</a>
@@ -643,7 +660,7 @@ abstract class Controller{
             if ($permission->id()=='') {
                 if ($this->mode == 'ajax') {
                     return __('permissionsDeny');
-                } else {            
+                } else {
                     header('Location: '.url('NavigationAdmin/permissions', true));
                     exit();
                 }

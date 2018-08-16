@@ -1,16 +1,15 @@
 var loadingDiv = false;
 
-$(document).ready(function() {
+$(function(){
     ajaxAdmin();
     activateCK();
-    activateStock();
     activateMaps();
 });
 
-$(window).load(function() {
+$(window).on('load', function() {
 });
 
-$(window).resize(function() {
+$(window).on('resize', function() {
 });
 
 function ajaxAdmin() {
@@ -42,7 +41,7 @@ function ajaxAdmin() {
         var actionDelete = $(this).attr('rel');
         if (actionDelete==undefined || actionDelete=='') {
             container.remove();
-        } else {        
+        } else {
             if (confirm(info_translations.js_messageDelete)) {
                 $.ajax(actionDelete)
                 .done(function(htmlResponse) {
@@ -52,10 +51,22 @@ function ajaxAdmin() {
         }
     });
 
-    //SIMPLE DELETE
-    $('.iconDelete a').click(function(evt){
+    /**
+    * DELETE an element.
+    * Function to show a message before deleting an element.
+    */
+    $(document).on('click', '.iconDelete a', function(evt){
         evt.stopImmediatePropagation();
-        return confirm(info_translations.js_messageDelete);
+        let parentIcon = $(this).parents('.iconDelete').first();
+        let parentContainer = $(this).parents('.lineAdmin').first();
+        if (parentIcon.hasClass('iconDeleteAjax')) {
+            if (confirm(info_translations.js_messageDelete)) {
+                $.ajax($(this).attr('href')).done(function(htmlResponse) { parentContainer.slideUp(300, function() { parentContainer.remove(); }); });
+            }
+            return false;
+        } else {
+            return confirm(info_translations.js_messageDelete);
+        }
     });
 
     //RESET OBJECT
@@ -84,17 +95,15 @@ function ajaxAdmin() {
     });
 
 
-    //SORT DIVS
-    $('.sortableList .listContent').each(function(index,ele){
+    /**
+    * SORT a list of elements.
+    */
+    $('.sortableList').each(function(index,ele){
         $(ele).sortable({
             handle:'.iconHandle',
             update: function() {
-                var urlLoad = $(this).parents('.sortableList').first().attr('rel');
-                var newOrder = Array();
-                $(ele).find('.lineAdmin').each(function(indexIns,eleIns){
-                    newOrder.push($(eleIns).attr('rel'));
-                });
-                $.post(urlLoad,{'newOrder[]':newOrder});
+                let urlLoad = $(this).attr('rel');
+                $.post(urlLoad,{'newOrder[]': $(ele).find('.lineAdmin').toArray().map(item => $(item).attr('rel'))});
             }
         });
     });
@@ -145,7 +154,7 @@ function ajaxAdmin() {
         $(ele).datepicker({
             'firstDay': 1,
             'dateFormat': dateFormatView
-        });    
+        });
     })
 
     //SELECT CHECKBOX
@@ -191,10 +200,10 @@ function ajaxAdmin() {
                 container.replaceWith(response);
                 activateAnnotations();
             });
-        });    
+        });
     }
     activateAnnotations();
-    
+
     //ACCORDION
     var accordionSelectSetup = function(ele) {
         var eleSelect = $(ele).find('.accordionTrigger select').first();
@@ -266,28 +275,60 @@ function activateCK() {
 }
 
 function activateMaps() {
-    if ($('.map').length > 0) {
-        $('.map').each(function(index, ele){
-            var mapLat = $(ele).find('.lat').html() * 1;
-            var mapLng = $(ele).find('.lng').html() * 1;
-            var mapZoom = $(ele).find('.zoom').html() * 1;
+    if ($('.pointMap').length > 0) {
+        $('.pointMap').each(function(index, ele){
+            var initLat = $(ele).data('initlat') * 1;
+            var initLng = $(ele).data('initlng') * 1;
+            var initZoom = $(ele).data('initzoom') * 1;
+            var mapLat = $(ele).find('.map').data('lat') * 1;
+            var mapLng = $(ele).find('.map').data('lng') * 1;
+            var mapZoom = $(ele).find('.map').data('zoom') * 1;
             var mapIns = $(ele).find('.mapIns');
             var inputLat = $(ele).find('.inputLat');
             var inputLng = $(ele).find('.inputLng');
-            var mapOptions = {
-                zoom: mapZoom,
-                center: new google.maps.LatLng(mapLat, mapLng)
-            };
-            var mapEle = new google.maps.Map(document.getElementById(mapIns.attr('id')), mapOptions);
-            markerPort = new google.maps.Marker({
-                position: new google.maps.LatLng(mapLat, mapLng),
-                map: mapEle
-            });
-            google.maps.event.addListener(mapEle, 'click', function(newPosition) {
-                markerPort.setPosition(newPosition.latLng);
-                inputLat.val(newPosition.latLng.lat());
-                inputLng.val(newPosition.latLng.lng());
-            });
+            var checkboxShowHide = $(ele).find('.showHide input[type=checkbox]');
+            var activateSingleMap = function() {
+                mapLat = (mapLat!=0) ? mapLat : initLat;
+                mapLng = (mapLng!=0) ? mapLng : initLng;
+                mapZoom = (mapZoom!=0) ? mapZoom : initZoom;
+                inputLat.val(mapLat);
+                inputLng.val(mapLng);
+                var mapOptions = {
+                    zoom: mapZoom,
+                    center: new google.maps.LatLng(mapLat, mapLng)
+                };
+                var mapEle = new google.maps.Map(document.getElementById(mapIns.attr('id')), mapOptions);
+                markerPort = new google.maps.Marker({
+                    position: new google.maps.LatLng(mapLat, mapLng),
+                    map: mapEle
+                });
+                google.maps.event.addListener(mapEle, 'click', function(newPosition) {
+                    markerPort.setPosition(newPosition.latLng);
+                    inputLat.val(newPosition.latLng.lat());
+                    inputLng.val(newPosition.latLng.lng());
+                });
+            }
+            if (checkboxShowHide.length > 0) {
+                if (mapLat=='' || mapLng=='') {
+                    checkboxShowHide.attr('checked', false);
+                    $('.map').hide();
+                } else {
+                    checkboxShowHide.attr('checked', true);
+                    activateSingleMap();
+                }
+                checkboxShowHide.click(function(){
+                    if ($(this).is(':checked')) {
+                        $('.map').show();
+                        activateSingleMap();
+                    } else {
+                        $('.map').hide();
+                        inputLat.val('');
+                        inputLng.val('');
+                    }
+                });
+            } else {
+                activateSingleMap();
+            }
         });
     }
 }
@@ -298,12 +339,12 @@ function updateFieldOrd() {
     });
 }
 
-function split( val ) {
+function split(val) {
     return val.split( /,\s*/ );
 }
 
-function extractLast( term ) {
-    return split( term ).pop();
+function extractLast(term) {
+    return split(term).pop();
 }
 
 function equalHeights(elements) {
@@ -318,42 +359,4 @@ function equalHeights(elements) {
 
 function randomString() {
     return Math.random().toString(36).substring(7);
-}
-
-
-function activateStock() {
-
-    $('.adminTableStockAdd').unbind('click');
-    $('.adminTableStockAdd').click(function(evt){
-        evt.preventDefault();
-        evt.stopImmediatePropagation();
-        var newLine = $('.stockFormEmpty').clone().removeClass('stockFormEmpty');
-        newLine.insertAfter($('.stockFormEmpty'));
-        activateStock();
-    });
-
-    $('.stockFormSave').unbind('click');
-    $('.stockFormSave').click(function(evt){
-        evt.preventDefault();
-        evt.stopImmediatePropagation();
-        var formLine = $(this).parents('.stockForm').first();
-        var formLineData = formLine.find(':input').serialize();
-        $.post(formLine.attr('rel'), formLineData)
-            .done(function(data) {
-                console.log(formLine);
-                console.log(data);
-                formLine.replaceWith(data);
-                activateStock();
-            });
-    });
-
-    $('.stockFormEdit').unbind('click');
-    $('.stockFormEdit').click(function(evt){
-        evt.preventDefault();
-        evt.stopImmediatePropagation();
-        var formLine = $(this).parents('.stockForm').first();
-        formLine.find('.adminTableRowInfoEdit').show();
-        formLine.find('.adminTableRowInfo').hide();
-    });
-
 }
