@@ -1,60 +1,25 @@
-var loadingDiv = false;
-
 $(function(){
-    ajaxAdmin();
+
+    activateBasicElements();
+    activateSortable();
+    activateNestedForms();
+    activateMultipleActions();
+    activateAutocomplete();
+    activateDatePicker();
     activateCK();
     activateMaps();
+
 });
 
-$(window).on('load', function() {
-});
-
-$(window).on('resize', function() {
-});
-
-function ajaxAdmin() {
-
-    //NESTED FORMS
-    //Disable multiple forms
-    $('.nestedFormFieldEmpty :input').attr('disabled', true);
-    //Add
-    $('.nestedFormFieldAdd').click(function(event){
-        event.stopImmediatePropagation();
-        var self = $(this);
-        var container = self.parents('.nestedFormField');
-        var newForm = container.find('.nestedFormFieldEmpty');
-        var formsContainer = container.find('.nestedFormFieldIns');
-        var newFormClone = newForm.clone();
-        newFormClone.removeClass('nestedFormFieldEmpty');
-        newFormClone.addClass('nestedFormFieldObject');
-        newFormClone.find(':input').attr('disabled', false);
-        newFormClone.html(newFormClone.html().replace(/\#ID_MULTIPLE#/g, randomString()));
-        newFormClone.appendTo(formsContainer);
-        ajaxAdmin();
-        updateFieldOrd();
-    });
-    //Delete
-    $('.nestedFormFieldDelete').click(function(event){
-        event.stopImmediatePropagation();
-        var self = $(this);
-        var container = $(this).parents('.nestedFormFieldObject');
-        var actionDelete = $(this).attr('rel');
-        if (actionDelete==undefined || actionDelete=='') {
-            container.remove();
-        } else {
-            if (confirm(info_translations.js_messageDelete)) {
-                $.ajax(actionDelete)
-                .done(function(htmlResponse) {
-                    container.remove();
-                });
-            }
-        }
-    });
+/**
+* Activate the basic elements for the administration area.
+**/
+function activateBasicElements() {
 
     /**
     * DELETE an element.
     * Function to show a message before deleting an element.
-    */
+    **/
     $(document).on('click', '.iconDelete a', function(evt){
         evt.stopImmediatePropagation();
         let parentIcon = $(this).parents('.iconDelete').first();
@@ -69,95 +34,24 @@ function ajaxAdmin() {
         }
     });
 
-    //RESET OBJECT
-    $('a.resetObject').click(function(event){
+    /**
+    * RESET an object.
+    * Function to show a message before resetting an object.
+    **/
+    $(document).on('click', 'a.resetObject', function(event){
         return confirm(info_translations.js_resetObjectMessage);
     });
 
-    //MULTIPLE ACTIONS
-    $('.multipleActionCheckAll input').click(function(){
-        $('.lineAdminCheckbox input').prop('checked', $(this).prop('checked'));
+    /**
+    * ORDER elements in a list.
+    **/
+    $(document).on('change', '.orderActions select', function(evt){
+        window.location = $(this).parents('.orderActions').attr('rel') + $(this).val();
     });
-    $('.multipleOption').click(function(event){
-        event.stopImmediatePropagation();
-        var postValues = [];
-        $('.lineAdminCheckbox input').each(function(index, ele){
-            if ($(ele).prop('checked')==true) {
-                postValues.push($(ele).attr('name'));
-            }
-        });
-        if (postValues.length > 0) {
-            $.post($(this).attr('rel'), {'list-ids': postValues})
-            .done(function( data ) {
-                location.reload();
-            });
-        }
-    });
-
 
     /**
-    * SORT a list of elements.
-    */
-    $('.sortableList').each(function(index,ele){
-        $(ele).sortable({
-            handle:'.iconHandle',
-            update: function() {
-                let urlLoad = $(this).attr('rel');
-                $.post(urlLoad,{'newOrder[]': $(ele).find('.lineAdmin').toArray().map(item => $(item).attr('rel'))});
-            }
-        });
-    });
-    $('.nestedFormFieldSortable').each(function(index, ele){
-        $(ele).sortable({
-            handle:'.nestedFormFieldOrder',
-            update: function() {
-                updateFieldOrd();
-            }
-        });
-    });
-
-    //CHANGE ORDER
-    $('.orderActions select').change(function(evt){
-        var url = $(this).parents('.orderActions').attr('rel') + $(this).val();
-        window.location = url;
-    });
-
-    //AUTOCOMPLETE
-    $('.autocompleteItem input').each(function(index, ele){
-        $(ele).autocomplete({
-            minLength: 2,
-            source: function(request, response) {
-                                $.getJSON($(ele).parents('.autocompleteItem').attr('rel'), {
-                                        term: extractLast(request.term)
-                                }, response );
-                        },
-            focus: function() {
-                return false;
-            },
-            select: function(event, ui) {
-                var terms = split(this.value);
-                terms.pop();
-                terms.push(ui.item.value);
-                terms.push("");
-                this.value = terms.join(", ");
-                return false;
-            }
-        });
-    });
-
-    //DATE PICKER
-    $('.dateText input').each(function(index, ele){
-        var dateFormatView = 'yy-mm-dd';
-        if ($(ele).attr('rel')=='dayMonth') {
-            var dateFormatView = 'dd-mm';
-        }
-        $(ele).datepicker({
-            'firstDay': 1,
-            'dateFormat': dateFormatView
-        });
-    })
-
-    //SELECT CHECKBOX
+    * CHECKBOX for certain select elements.
+    **/
     $('.selectCheckbox').each(function(index, ele){
         var selectItem = $(ele).find('select');
         var checkboxItem = $(ele).find('input[type=checkbox]');
@@ -167,70 +61,139 @@ function ajaxAdmin() {
         });
     });
 
-    //SELECT TRIGGERS
-    $('.selectChange').each(function(index, ele){
-        var trigger = $(ele).find('.selectTrigger');
-        var change = $(ele).find('.selectTarget');
-        trigger.find('select').change(function(evt) {
-            var optionsPost = {};
-            trigger.find('select').each(function(indexIns, eleIns){
-                optionsPost[$(eleIns).attr('name')] = $(eleIns).val();
-            });
-            $.post(trigger.attr('rel'), optionsPost)
-            .done(function(data) {
-                change.html(data);
-            });
-        });
+}
+
+/**
+* MULTIPLE actions in a list.
+**/
+function activateMultipleActions() {
+
+    // Activate the select/deselect all items.
+    $(document).on('click', '.multipleActionCheckAll input', function(){
+        $('.lineAdminCheckbox input').prop('checked', $(this).prop('checked'));
     });
 
-    //ANNOTATIONS
-    var activateAnnotations = function() {
-        $('.annotationAdminOption').click(function(evt){
-            evt.stopImmediatePropagation();
-            var container = $(this).parents('.annotationAdmin');
-            $.get($(this).attr('rel'), function(response){
-                container.replaceWith(response);
-                activateAnnotations();
-            });
+    // Activate the action with the multiple items.
+    $(document).on('click', '.multipleOption', function(event){
+        event.stopImmediatePropagation();
+        let postValues = [];
+        $('.lineAdminCheckbox input').each(function(index, ele){
+            if ($(ele).prop('checked')==true) postValues.push($(ele).attr('name'));
         });
-        $('.responsesAdminOption').click(function(evt){
-            evt.stopImmediatePropagation();
-            var container = $(this).parents('.responsesAdmin');
-            $.get($(this).attr('rel'), function(response){
-                container.replaceWith(response);
-                activateAnnotations();
-            });
-        });
-    }
-    activateAnnotations();
-
-    //ACCORDION
-    var accordionSelectSetup = function(ele) {
-        var eleSelect = $(ele).find('.accordionTrigger select').first();
-        var eleSwitchValue = $(ele).find('.accordionTrigger').first().attr('rel');
-        var eleContent = $(ele).find('.accordionContent').first();
-        if (eleSelect.val() == eleSwitchValue) {
-            eleContent.show();
-        } else {
-            eleContent.hide();
+        if (postValues.length > 0) {
+            $.post($(this).attr('rel'), {'list-ids': postValues}).done(function() { location.reload(); });
         }
-    }
-    $('.accordionSelect').each(function(index, ele){
-        accordionSelectSetup($(ele));
-        $(ele).on('change', function(evt){
-            evt.stopImmediatePropagation();
-            accordionSelectSetup($(ele));
-        });
-    });
-
-    $('.orderModifyTrigger').click(function(evt){
-        evt.stopImmediatePropagation();
-        evt.preventDefault();
-        $('.orderModifyContent').toogle();
     });
 
 }
 
+/**
+* NESTED elements in a form.
+*/
+function activateNestedForms() {
+
+    // Disable multiple forms
+    $('.nestedFormFieldEmpty :input').attr('disabled', true);
+
+    // Action to add an element to the form.
+    $(document).on('click', '.nestedFormFieldAdd', function(event){
+        event.stopImmediatePropagation();
+        var self = $(this);
+        var container = self.parents('.nestedFormField');
+        var newForm = container.find('.nestedFormFieldEmpty');
+        var formsContainer = container.find('.nestedFormFieldIns');
+        var newFormClone = newForm.clone();
+        newFormClone.removeClass('nestedFormFieldEmpty');
+        newFormClone.addClass('nestedFormFieldObject');
+        newFormClone.find(':input').attr('disabled', false);
+        newFormClone.html(newFormClone.html().replace(/\#ID_MULTIPLE#/g, randomString()));
+        newFormClone.appendTo(formsContainer);
+        $('.fieldOrd').each(function(index, ele){ $(ele).val(index + 1);});
+    });
+
+    // Action to delete an element of the form.
+    $(document).on('click', '.nestedFormFieldDelete', function(event){
+        event.stopImmediatePropagation();
+        var self = $(this);
+        var container = $(this).parents('.nestedFormFieldObject');
+        var actionDelete = $(this).attr('rel');
+        if (!actionDelete) {
+            container.remove();
+        } else {
+            if (confirm(info_translations.js_messageDelete)) {
+                $.ajax(actionDelete)
+                .done(function(htmlResponse) {
+                    container.remove();
+                });
+            }
+        }
+    });
+
+}
+
+/**
+* SORT a list of elements.
+*/
+function activateSortable() {
+
+    // Regular list
+    $('.sortableList').each(function(index,ele){
+        $(ele).sortable({
+            handle:'.iconHandle',
+            update: function() {
+                let urlLoad = $(this).attr('rel');
+                $.post(urlLoad,{'newOrder[]': $(ele).find('.lineAdmin').toArray().map(item => $(item).attr('rel'))});
+            }
+        });
+    });
+
+    // Nested list
+    $('.nestedFormFieldSortable').each(function(index, ele){
+        $(ele).sortable({
+            handle:'.nestedFormFieldOrder',
+            update: function() {
+                $('.fieldOrd').each(function(index, ele){ $(ele).val(index + 1);});
+            }
+        });
+    });
+
+}
+
+/**
+* AUTOCOMPLETE for certain elements in a form.
+*/
+function activateAutocomplete() {
+    $('.autocompleteItem input').each(function(index, ele){
+        $(ele).autocomplete({
+            minLength: 2,
+            source: function(request, response) { $.getJSON($(ele).parents('.autocompleteItem').attr('rel'), { term: split(request.term).pop() }, response ); },
+            focus: function() { return false; },
+            select: function(event, ui) {
+                let terms = split(this.value);
+                terms.pop();
+                terms.push(ui.item.value);
+                terms.push("");
+                this.value = terms.join(", ");
+                return false;
+            }
+        });
+    });
+}
+
+/**
+* DATE PICKER for certain elements in a form.
+**/
+function activateDatePicker() {
+    $('.dateText input').each(function(index, ele){
+        var dateFormatView = 'yy-mm-dd';
+        if ($(ele).attr('rel')=='dayMonth') var dateFormatView = 'dd-mm';
+        $(ele).datepicker({ 'firstDay': 1, 'dateFormat': dateFormatView });
+    });
+}
+
+/**
+* CKEditor for certain elements in a form.
+**/
 function activateCK() {
     $('.ckeditorArea textarea').each(function(index, ele){
         if ($(ele).attr('rel') != 'ckeditor') {
@@ -274,6 +237,9 @@ function activateCK() {
     });
 }
 
+/**
+* Activate the GoogleMaps selection for certain elements in a form.
+**/
 function activateMaps() {
     if ($('.pointMap').length > 0) {
         $('.pointMap').each(function(index, ele){
@@ -333,28 +299,9 @@ function activateMaps() {
     }
 }
 
-function updateFieldOrd() {
-    $('.fieldOrd').each(function(index, ele){
-        $(ele).val(index + 1);
-    });
-}
 
 function split(val) {
     return val.split( /,\s*/ );
-}
-
-function extractLast(term) {
-    return split(term).pop();
-}
-
-function equalHeights(elements) {
-    var maxHeight = 0;
-    elements.each(function(index,ele){
-        if ($(ele).height() > maxHeight) {
-            maxHeight = $(ele).height();
-        }
-    });
-    elements.height(maxHeight);
 }
 
 function randomString() {

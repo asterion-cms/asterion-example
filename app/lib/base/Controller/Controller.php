@@ -184,11 +184,7 @@ abstract class Controller{
                 $nested = ($this->action == 'modifyNested') ? true : false;
                 $modify = $this->modify($nested);
                 if ($modify['success']=='1') {
-                    if (isset($this->values['submit-saveCheck'])) {
-                        header('Location: '.url($this->type.'/modifyViewCheck/'.$modify['id'], true));
-                    } else {
-                        header('Location: '.url($this->type.'/listAdmin', true));
-                    }
+                    header('Location: '.url($this->type.'/modifyViewCheck/'.$modify['id'], true));
                     exit();
                 } else {
                     $this->messageError = __('errorsForm');
@@ -555,8 +551,7 @@ abstract class Controller{
                                     array('values'=>$values,
                                             'action'=>url($this->type.'/modify', true),
                                             'class'=>'formAdmin formAdminModify'),
-                                    array('submit'=>array('save'=>__('save'),
-                                            'saveCheck'=>__('saveCheck')))));
+                                    array('submit'=>array('save'=>__('save')))));
     }
 
     /**
@@ -605,7 +600,10 @@ abstract class Controller{
             case 'search':
                 if (Permission::canInsert($this->type)) {
                     $items = '<div class="menuSimpleItem menuSimpleItemInsert">
-                                <a href="'.url($this->type.'/insertView', true).'">'.__('insertNew').'</a>
+                                <a href="'.url($this->type.'/insertView', true).'">
+                                    <i class="icon icon-plus"></i>
+                                    <span>'.__('insertNew').'</span>
+                                </a>
                             </div>';
                 }
             break;
@@ -614,22 +612,34 @@ abstract class Controller{
             case 'modifyView':
             case 'modifyViewCheck':
                 $items = '<div class="menuSimpleItem menuSimpleItemList">
-                            <a href="'.url($this->type.'/listAdmin', true).'">'.__('viewList').'</a>
+                            <a href="'.url($this->type.'/listAdmin', true).'">
+                                <i class="icon icon-list"></i>
+                                <span>'.__('viewList').'</span>
+                            </a>
                         </div>';
             break;
             case 'insertCheck':
                 $items = '<div class="menuSimpleItem menuSimpleItemInsert">
-                            <a href="'.url($this->type.'/insertView', true).'">'.__('insertNew').'</a>
+                            <a href="'.url($this->type.'/insertView', true).'">
+                                <i class="icon icon-plus"></i>
+                                <span>'.__('insertNew').'</span>
+                            </a>
                         </div>';
                 if (Permission::canInsert($this->type)) {
                     $items .= '<div class="menuSimpleItem menuSimpleItemList">
-                                <a href="'.url($this->type.'/listAdmin', true).'">'.__('viewList').'</a>
+                                <a href="'.url($this->type.'/listAdmin', true).'">
+                                    <i class="icon icon-list"></i>
+                                    <span>'.__('viewList').'</span>
+                                </a>
                             </div>';
                 }
             break;
             case 'listBack':
                 $items = '<div class="menuSimpleItem menuSimpleItemList">
-                            <a href="'.url($this->type.'/listAdmin', true).'">'.__('viewList').'</a>
+                            <a href="'.url($this->type.'/listAdmin', true).'">
+                                <i class="icon icon-plus"></i>
+                                <span>'.__('viewList').'</span>
+                            </a>
                         </div>';
             break;
 

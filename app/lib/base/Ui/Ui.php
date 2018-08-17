@@ -266,7 +266,10 @@ class Ui {
     */
     public function delete($ajax=false) {
         return '<div class="iconSide iconDelete '.(($ajax) ? 'iconDeleteAjax' : '').'">
-                    <a href="'.$this->linkDelete($ajax).'">'.__('delete').'</a>
+                    <a href="'.$this->linkDelete($ajax).'">
+                        <i class="icon icon-trash"></i>
+                        <span>'.__('delete').'</span>
+                    </a>
                 </div>';
     }
 
@@ -275,7 +278,10 @@ class Ui {
     */
     public function modify($nested=false) {
         return '<div class="iconSide iconModify">
-                    <a href="'.$this->linkModify($nested).'">'.__('modify').'</a>
+                    <a href="'.$this->linkModify($nested).'">
+                        <i class="icon icon-pencil"></i>
+                        <span>'.__('modify').'</span>
+                    </a>
                 </div>';
     }
 
@@ -284,7 +290,10 @@ class Ui {
     */
     public function view() {
         return '<div class="iconSide iconView">
-                    <a href="'.$this->object->url().'" target="_blank">'.__('view').'</a>
+                    <a href="'.$this->object->url().'" target="_blank">
+                        <i class="icon icon-view"></i>
+                        <span>'.__('view').'</span>
+                    </a>
                 </div>';
     }
 
@@ -293,7 +302,7 @@ class Ui {
     */
     public function order() {
         return '<div class="iconSide iconHandle">
-                    <span>'.__('move').'</span>
+                    <i class="icon icon-move"></i>
                 </div>';
     }
 
