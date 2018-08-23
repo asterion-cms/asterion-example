@@ -107,14 +107,7 @@ class NavigationAdmin_Ui extends Ui{
             $objectNames = File::scanDirectoryObjectsApp();
             $menuItems .= $this->renderMenuObjects($objectNames, 'menuSideItemApp');
             if ($this->userType->get('managesPermissions')=='1') {
-                $menuItems .= '
-                                <div class="menuSideItem menuSideItemAdmin">
-                                    <a href="'.url('Lang', true).'">
-                                        <i class="icon icon-conversation"></i>
-                                        <span>'.__('langs').'</span>
-                                    </a>
-                                </div>
-                                <div class="menuSideItem menuSideItemAdmin">
+                $menuItems .= '<div class="menuSideItem menuSideItemAdmin">
                                     <a href="'.url('Permission', true).'">
                                         <i class="icon icon-users"></i>
                                         <span>'.__('permissions').'</span>

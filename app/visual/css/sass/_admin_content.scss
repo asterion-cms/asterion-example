@@ -68,13 +68,12 @@
 }
 .contentSimple {
     width: 400px;
-    margin: auto;
-    margin-top: 50px;
-    margin-bottom: 15px;
+    margin: 100px auto 20px auto;
     border: 1px solid $colorTextAlt;
     background: $white;
     padding: 15px;
     @include simpleShadow();
+    @include borderRadius(5px);
     p,a {
         color: $colorText;
         text-align: center;

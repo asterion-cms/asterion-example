@@ -57,6 +57,7 @@
             padding: 5px;
             font-size: $fontSizeSmall;
             font-family: $fontFamily;
+            max-width: 100%;
             @include borderBox();
             @include borderRadius(3px);
             &:focus {
@@ -79,14 +80,6 @@
             padding: 0;
             opacity: 0.6;
         }
-    }
-    .text-large input,
-    .textarea-large textarea {
-        width: 100%;
-    }
-    .text-long input,
-    .textarea-long textarea {
-        width: 80%;
     }
     .dateText input {
         width: 200px;
@@ -679,11 +672,11 @@
 .myAccount {
     @include clearer();
     .myAccountPersonal {
-        width: 48%;
+        width: calc(50% - 10px);
         float: left;
     }
     .myAccountPassword {
-        width: 48%;
+        width: calc(50% - 10px);
         float: right;
     }
     .simpleForm {
@@ -723,4 +716,9 @@
     .mapIns {
         height: 300px;
     }
+}
+
+.loginFormAction {
+    padding: 20px 0;
+    text-align: center;
 }
