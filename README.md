@@ -6,4 +6,4 @@ You must have a proper **Apache server** running or either **MAMP** (http://www.
 
 To install this example just run
 
-```./ install.sh```
+```./install.sh```
