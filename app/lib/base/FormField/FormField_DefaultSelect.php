@@ -11,7 +11,7 @@
 class FormField_DefaultSelect {
 
     protected $options;
-    
+
     public function __construct($options) {
         $this->item = $options['item'];
         $this->name = (string)$this->item->name;
@@ -27,6 +27,7 @@ class FormField_DefaultSelect {
         $this->options['label'] = (string)$this->item->label;
         $this->options['placeholder'] = (string)$this->item->placeholder;
         $this->options['firstSelect'] = (string)$this->item->firstSelect;
+        $this->options['checkbox'] = (boolean)$this->item->checkbox;
         $this->options['typeField'] = (isset($options['typeField'])) ? $options['typeField'] : 'select';
         //Load the values
         $refObject = (string)$this->item->refObject;
@@ -87,7 +88,7 @@ class FormField_DefaultSelect {
                         $itemsOptions .= '<option value="'.$keyIns.'" '.$isSelected.'>'.__($itemIns).'</option>';
                     }
                     $htmlOptions .= '<optgroup label="'.$item['label'].'">'.$itemsOptions.'</optgroup>';
-                } else {                
+                } else {
                     $isSelected = ($key==$selected || (is_array($selected) && in_array($key, $selected))) ? 'selected="selected"' : '';
                     $htmlOptions .= '<option value="'.$key.'" '.$isSelected.'>'.__($item).'</option>';
                 }
@@ -112,6 +113,6 @@ class FormField_DefaultSelect {
             }
         }
     }
-    
+
 }
 ?>

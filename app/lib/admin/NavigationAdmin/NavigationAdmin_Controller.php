@@ -33,11 +33,14 @@ class NavigationAdmin_Controller extends Controller{
             break;
             case 'base-info':
                 $this->mode = 'js';
-                $info = array('base_url'=>LOCAL_URL,
+                $info = array(
+                            'base_url'=>LOCAL_URL,
+                            'base_file'=>LOCAL_FILE,
                             'app_url'=>APP_URL,
                             'app_folder'=>APP_FOLDER,
                             'site_url'=>url(''),
-                            'lang'=>Lang::active());
+                            'lang'=>Lang::active()
+                            );
                 return 'var info_site = '.json_encode($info).';';
             break;
             case 'js-translations':
@@ -56,8 +59,7 @@ class NavigationAdmin_Controller extends Controller{
             case 'backup':
                 $this->checkLoginAdmin();
                 $this->titlePage = __('backup');
-                File::createDirectory(BASE_FILE.'data', false);
-                File::createDirectory(BASE_FILE.'data/backup', false);
+                File::createDirectory(BASE_FILE.'data/backup');
                 if (!is_writable(BASE_FILE.'data/backup')) {
                     $this->messageError = str_replace('#DIRECTORY', BASE_FILE.'data/backup', __('directoryNotWritable'));
                 } else {

@@ -52,7 +52,7 @@ class ListObjects {
         }
         return $this->countTotal;
     }
-    
+
     /**
     * Check if the list is empty.
     */
@@ -71,7 +71,7 @@ class ListObjects {
                 $this->options['query'] .= ' LIMIT '.($page*$this->results).', '.$this->results;
             }
             $this->list = $this->object->readListQuery($this->options['query']);
-        } else {        
+        } else {
             if ($this->results!='') {
                 $this->options['limit'] = ($page*$this->results).', '.$this->results;
             }
@@ -83,26 +83,24 @@ class ListObjects {
     * Show the list using the Ui object.
     */
     public function showList($options=array(), $params=array()) {
+        $sizeList = count($this->list);
         $message = (isset($options['message'])) ? $options['message'] : $this->message;
         $function = (isset($this->options['function'])) ? $this->options['function'] : 'Public';
         $function = (isset($options['function'])) ? $options['function'] : $function;
         $middle = (isset($options['middle'])) ? $options['middle'] : '';
+        $middleRepetitions = (isset($options['middleRepetitions'])) ? $options['middleRepetitions'] : 2;
         $html = '';
-        if (count($this->list)>0) {
-            $center = floor(count($this->list)/2)-1;
+        if ($sizeList > 0) {
+            $middleRepetitions = ceil($sizeList/$middleRepetitions);
             $counter = 0;
             foreach($this->list as $item) {
-                $params['counter'] = $counter + 1;
                 $itemUiName = $this->objectName.'_Ui';
                 $functionName = 'render'.ucwords($function);
                 $itemUi = new $itemUiName($item);
-                if ($counter == 0) $params['class'] = 'first';
-                if ($counter == count($this->list)-1) $params['class'] = 'last';
-                $html .= $itemUi->$functionName($params);
-                if ($middle!='' && $counter == $center) {
+                if ($counter>0 && $middleRepetitions>0 && $middle!='' && $sizeList>$middleRepetitions && $counter%$middleRepetitions==0) {
                     $html .= $middle;
                 }
-                $params['class'] = '';
+                $html .= $itemUi->$functionName($params);
                 $counter++;
             }
         } else {
@@ -148,8 +146,8 @@ class ListObjects {
                             $listFrom = $page - $midDelta;
                             $listTo = $page + $midDelta;
                             $listStart = true;
-                            $listEnd = true;                        
-                        }                    
+                            $listEnd = true;
+                        }
                     }
                 }
                 $html = '';
@@ -189,21 +187,14 @@ class ListObjects {
     */
     public function showListPager($options=array(), $params=array()) {
         $pager = $this->pager($options);
-        $pagerTop = '';
-        $pagerBottom = '';
-        if ($pager != '') {
-            $pagerTop = '<div class="listPagerTop">'.$pager.'</div>';
-            $pagerBottom = '<div class="listPagerBottom">'.$pager.'</div>';
-        }
         $showResults = (isset($options['showResults'])) ? $options['showResults'] : true;
         $listResults = ($showResults) ? '<div class="listResults">'.str_replace('#RESULTS', $this->countTotal(), __('listTotal')).'</div>' : '';
         return '<div class="listWrapper">
-                    '.$pagerTop.'
                     '.$listResults.'
                     <div class="listContent">
                         '.$this->showList($options, $params).'
                     </div>
-                    '.$pagerBottom.'
+                    '.$pager.'
                 </div>';
     }
 
