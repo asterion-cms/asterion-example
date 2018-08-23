@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+* @structure Post
+*
+* @author Leano Martinet <info@asterion-cms.com>
+* @package Asterion
+* @version 3.0.1
+-->
+<object>
+    <name>Post</name>
+    <info>
+        <sql>
+            <primary>idPost</primary>
+            <created>true</created>
+            <modified>true</modified>
+            <onCreate>Tag,PostTag</onCreate>
+            <onDelete>PostTag</onDelete>
+        </sql>
+        <form>
+            <title>posts</title>
+            <orderBy>publishDate DESC, title, published</orderBy>
+            <label>#title</label>
+            <pager>10</pager>
+            <viewPublic>true</viewPublic>
+            <publicUrl>@posts / #titleUrl</publicUrl>
+            <publicUrlList>@posts</publicUrlList>
+            <templateItemAdmin>
+                <div class="active active-##active">
+                    <p class="image">#image</p>
+                    <p class="accent"><strong>#title</strong></p>
+                    <p class="tiny"><span class="accent">#publishDate</span> | #idLang | #idUser</p>
+                    <p class="tiny">#shortDescription</p>
+                </div>
+            </templateItemAdmin>
+            <multipleActions>
+                <action>delete</action>
+                <action>activate</action>
+                <action>deactivate</action>
+            </multipleActions>
+        </form>
+    </info>
+    <attributes>
+        <attribute>
+            <name>idPost</name>
+            <type>id-autoincrement</type>
+        </attribute>
+        <attribute>
+            <name>idUser</name>
+            <type>hidden-user</type>
+        </attribute>
+        <attribute>
+            <name>idLang</name>
+            <label>language</label>
+            <type>select-varchar</type>
+            <refObject>Lang</refObject>
+        </attribute>
+        <attribute>
+            <name>image</name>
+            <label>image</label>
+            <type>file</type>
+            <mode>image</mode>
+        </attribute>
+        <attribute>
+            <name>title</name>
+            <label>title</label>
+            <required>notEmpty</required>
+            <type>text-long</type>
+        </attribute>
+        <attribute>
+            <name>titleUrl</name>
+            <type>hidden-url</type>
+            <refAttribute>title</refAttribute>
+        </attribute>
+        <attribute>
+            <name>idCategory</name>
+            <label>category</label>
+            <type>select</type>
+            <refObject>Category</refObject>
+            <checkbox>true</checkbox>
+        </attribute>
+        <attribute>
+            <name>publishDate</name>
+            <label>publishDate</label>
+            <type>date-text</type>
+        </attribute>
+        <attribute>
+            <name>publishDate</name>
+            <label>publishDate</label>
+            <type>date</type>
+            <checkboxDate>true</checkboxDate>
+        </attribute>
+        <attribute>
+            <name>aaa</name>
+            <label>aaa</label>
+            <type>select</type>
+            <values>
+                <value>das1</value>
+                <value>das2</value>
+                <value>das3</value>
+            </values>
+            <checkbox>true</checkbox>
+        </attribute>
+        <attribute>
+            <name>shortDescription</name>
+            <label>shortDescription</label>
+            <required>notEmpty</required>
+            <type>textarea</type>
+        </attribute>
+        <attribute>
+            <name>description</name>
+            <label>description</label>
+            <required>notEmpty</required>
+            <type>textarea-ck</type>
+        </attribute>
+        <attribute>
+            <name>tags</name>
+            <label>tags</label>
+            <type>multiple-autocomplete</type>
+            <refObject>Tag</refObject>
+            <refAttribute>name</refAttribute>
+            <lnkObject>PostTag</lnkObject>
+        </attribute>
+        <attribute>
+            <name>active</name>
+            <label>active</label>
+            <type>checkbox</type>
+        </attribute>
+        <attribute>
+            <name>views</name>
+            <type>hidden</type>
+        </attribute>
+    </attributes>
+    <indexes>
+        <index>
+            <name>titleUrl</name>
+            <fields>titleUrl</fields>
+        </index>
+    </indexes>
+</object>
